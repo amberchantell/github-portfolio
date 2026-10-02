@@ -17,7 +17,7 @@ margin-bottom: 0px; }
     .stMetric { background-color: #F8FAFC; border: 1px solid #E2E8F0; 
 padding: 12px; border-radius: 8px; }
 </style>
-""", unsafe_allow_html=unsafe_allow_html)
+""", unsafe_allow_html=True)
 
 st.markdown('<div class="main-header">📝 Technical Writing Doc-Ops 
 Workbench</div>', unsafe_allow_html=True)
