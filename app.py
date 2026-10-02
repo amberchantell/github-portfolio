@@ -1,18 +1,17 @@
 import streamlit as st
 import anthropic
 
-# Page Configuration
 st.set_page_config(
-    page_title="Doc-Ops Workbench | Tech Writing AI Tool", 
+    page_title="Doc-Ops Workbench | Amber Rogers", 
     page_icon="📝", 
     layout="wide"
 )
 
-# Custom Styling for Portfolio Polish
+# Custom Styling & Personal Branding Accent
 st.markdown("""
 <style>
-    .main-header { font-size: 2.2rem; font-weight: 700; color: #1E293B; margin-bottom: 0px; }
-    .sub-header { font-size: 1rem; color: #64748B; margin-bottom: 25px; }
+    .main-header { font-size: 2.2rem; font-weight: 700; color: #0F172A; margin-bottom: 0px; }
+    .sub-header { font-size: 1rem; color: #475569; margin-bottom: 15px; }
     .stMetric { background-color: #F8FAFC; border: 1px solid #E2E8F0; padding: 12px; border-radius: 8px; }
 </style>
 """, unsafe_allow_html=True)
@@ -20,7 +19,15 @@ st.markdown("""
 st.markdown('<div class="main-header">📝 Technical Writing Doc-Ops Workbench</div>', unsafe_allow_html=True)
 st.markdown('<div class="sub-header">AI-assisted pre-drafting gap analysis & post-drafting release synthesis</div>', unsafe_allow_html=True)
 
-# Sample Data for One-Click Portfolio Demos
+# Personal Philosophy Expander
+with st.expander("💡 Why I Built This Workbench"):
+    st.markdown("""
+    In technical writing across hardware and software ecosystems, **discovery friction** is the single biggest bottleneck to on-time releases. 
+    Writers often spend hours parsing ambiguous engineering sync transcripts or chasing down unassigned API rate-limit schemas. 
+    
+    I created this workbench to automate **pre-drafting gap analysis** and **post-drafting release synthesis**, enabling documentation engineers and technical writers to focus on high-impact technical deliverable design.
+    """)
+
 SAMPLE_NOTES = """[Meeting Notes: Auth Service v2 Upgrade - Oct 2026]
 Attendees: Alex (DevOps), Priya (Backend Lead), Jordan (Tech Writer)
 
@@ -69,7 +76,6 @@ Release 4.12 enhances platform security by implementing rate-limiting middleware
    - `HTTP 429` error payload handling
 4. **Troubleshooting & FAQs**"""
 
-# Sidebar Configuration
 with st.sidebar:
     st.header("⚙️ Configuration")
     
@@ -79,46 +85,51 @@ with st.sidebar:
         help="Use Demo Mode to test instantly without an API key, or Live Mode to call Claude 3.5 Sonnet live."
     )
     
+    style_guide = st.selectbox(
+        "Documentation Style Guide Rule",
+        ["Standard Technical Writing", "Google Developer Documentation Style", "Microsoft Writing Style Guide"],
+        help="Instructs Claude to tailor recommendations to specific organizational style guidelines."
+    )
+    
+    export_format = st.selectbox(
+        "Output Format",
+        ["Markdown (.md)", "Jira Markup (.txt)"],
+        help="Select output formatting dialect."
+    )
+    
     anthropic_key = ""
     if app_mode == "Live Mode (Anthropic API)":
-        anthropic_key = st.text_input(
-            "Anthropic API Key", 
-            type="password", 
-            help="Enter your API key starting with sk-ant-..."
-        )
+        anthropic_key = st.text_input("Anthropic API Key", type="password", help="Enter your API key starting with sk-ant-...")
     
     st.markdown("---")
-    st.markdown("**About This App**")
-    st.caption("Built to streamline technical writer discovery workflows. Uses Claude 3.5 Sonnet to convert unstructured technical communications into actionable documentation deliverables.")
+    st.markdown("### 👩‍💻 Built by Amber Rogers")
+    st.caption("Senior Technical Writer and DocOps Advocate specializing in hardware and software documentation, API reference development, and AI-driven workflow integration.")
+    st.markdown("[🔗 LinkedIn Profile](https://www.linkedin.com) | [🐙 GitHub Portfolio](https://github.com/amberchantell)")
 
-# Navigation Tabs
 tab1, tab2 = st.tabs(["🔍 Pre-Drafting: Gap Analysis", "📊 Post-Drafting: Release Summary"])
 
-# TAB 1: Gap Analysis
 with tab1:
     st.subheader("Identify Technical Gaps in Raw Notes")
     st.write("Convert raw meeting transcripts or engineering sync notes into structured checklists of missing technical details.")
     
     if app_mode == "Demo Mode (Pre-loaded)":
-        st.info("💡 **Demo Mode Active:** Click below to run analysis on sample engineering notes without an API key.")
+        st.info(f"💡 **Demo Mode Active:** Applied rule set: **{style_guide}** | Export format: **{export_format}**")
     
     notes_input = st.text_area("Raw Engineering Notes", value=SAMPLE_NOTES if app_mode == "Demo Mode (Pre-loaded)" else "", height=200)
     
     if st.button("Run Gap Analysis", type="primary", key="btn_gap"):
         if app_mode == "Demo Mode (Pre-loaded)":
             st.success("Analysis Complete (Demo Output)")
-            
             m1, m2, m3 = st.columns(3)
             m1.metric("Critical Gaps", "2", delta_color="inverse")
             m2.metric("Technical Items", "2")
             m3.metric("Sign-Offs Needed", "2")
-            
             st.markdown(SAMPLE_GAP_OUTPUT)
             st.download_button(
-                label="📥 Download Checklist (.md)",
+                label="📥 Download Checklist",
                 data=SAMPLE_GAP_OUTPUT,
-                file_name="gap_analysis_checklist.md",
-                mime="text/markdown"
+                file_name="gap_analysis_checklist.md" if export_format == "Markdown (.md)" else "gap_analysis_checklist.txt",
+                mime="text/plain"
             )
         else:
             if not notes_input:
@@ -129,36 +140,32 @@ with tab1:
                 with st.spinner("Claude is analyzing notes for technical gaps..."):
                     try:
                         client = anthropic.Anthropic(api_key=anthropic_key)
-                        prompt = f"""You are an expert senior technical writer. Analyze these engineering meeting notes and output a crisp Markdown checklist categorizing missing technical details, unspecified API schemas, edge cases, and required stakeholder sign-offs:
+                        prompt = f"""You are an expert senior technical writer adhering strictly to the {style_guide}. Analyze these engineering meeting notes and output a crisp checklist categorizing missing technical details, unspecified API schemas, edge cases, and required stakeholder sign-offs. Format output using {export_format}:
 
 {notes_input}"""
-                        
                         response = client.messages.create(
                             model="claude-3-5-sonnet-20241022",
                             max_tokens=1000,
                             messages=[{"role": "user", "content": prompt}]
                         )
-                        
                         output_text = response.content[0].text
                         st.success("Analysis Complete!")
                         st.markdown(output_text)
-                        
                         st.download_button(
-                            label="📥 Download Checklist (.md)",
+                            label="📥 Download Checklist",
                             data=output_text,
-                            file_name="gap_analysis_checklist.md",
-                            mime="text/markdown"
+                            file_name="gap_analysis_checklist.md" if export_format == "Markdown (.md)" else "gap_analysis_checklist.txt",
+                            mime="text/plain"
                         )
                     except Exception as e:
                         st.error(f"Error executing request: {e}")
 
-# TAB 2: Release Synthesis
 with tab2:
     st.subheader("Generate Release Summaries & Doc Outlines")
     st.write("Synthesize completed Jira tickets and release specs into executive updates and structured documentation outlines.")
     
     if app_mode == "Demo Mode (Pre-loaded)":
-        st.info("💡 **Demo Mode Active:** Click below to generate a release summary from sample specs without an API key.")
+        st.info(f"💡 **Demo Mode Active:** Applied rule set: **{style_guide}** | Export format: **{export_format}**")
     
     jira_input = st.text_area("Resolved Jira Tickets / Release Specs", value=SAMPLE_JIRA if app_mode == "Demo Mode (Pre-loaded)" else "", height=200)
     
@@ -166,12 +173,11 @@ with tab2:
         if app_mode == "Demo Mode (Pre-loaded)":
             st.success("Synthesis Complete (Demo Output)")
             st.markdown(SAMPLE_RELEASE_OUTPUT)
-            
             st.download_button(
-                label="📥 Download Summary & Outline (.md)",
+                label="📥 Download Summary & Outline",
                 data=SAMPLE_RELEASE_OUTPUT,
-                file_name="release_summary_and_outline.md",
-                mime="text/markdown"
+                file_name="release_summary.md" if export_format == "Markdown (.md)" else "release_summary.txt",
+                mime="text/plain"
             )
         else:
             if not jira_input:
@@ -182,27 +188,33 @@ with tab2:
                 with st.spinner("Claude is synthesizing release notes..."):
                     try:
                         client = anthropic.Anthropic(api_key=anthropic_key)
-                        prompt = f"""You are an expert technical writer. Synthesize these feature specs/Jira summaries into two clean markdown sections:
+                        prompt = f"""You are an expert technical writer adhering strictly to the {style_guide}. Synthesize these feature specs/Jira summaries into two sections using {export_format}:
 1. Executive Release Summary (a high-level executive overview for internal stakeholders)
 2. Proposed Documentation Outline (a detailed numbered outline for end-user documentation)
 
 {jira_input}"""
-                        
                         response = client.messages.create(
                             model="claude-3-5-sonnet-20241022",
                             max_tokens=1000,
                             messages=[{"role": "user", "content": prompt}]
                         )
-                        
                         output_text = response.content[0].text
                         st.success("Synthesis Complete!")
                         st.markdown(output_text)
-                        
                         st.download_button(
-                            label="📥 Download Summary & Outline (.md)",
+                            label="📥 Download Summary & Outline",
                             data=output_text,
-                            file_name="release_summary_and_outline.md",
-                            mime="text/markdown"
+                            file_name="release_summary.md" if export_format == "Markdown (.md)" else "release_summary.txt",
+                            mime="text/plain"
                         )
                     except Exception as e:
                         st.error(f"Error executing request: {e}")
+
+# Branded Footer
+st.markdown("---")
+st.markdown(
+    "<div style='text-align: center; color: #64748B; font-size: 0.85rem; padding-bottom: 20px;'>"
+    "Technical Writing Doc-Ops Workbench • Engineered by <b>Amber Rogers</b> • Powered by Claude 3.5 Sonnet"
+    "</div>",
+    unsafe_allow_html=True
+)
