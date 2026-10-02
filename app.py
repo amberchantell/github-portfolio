@@ -104,7 +104,7 @@ with st.sidebar:
     st.markdown("---")
     st.markdown("### 👩‍💻 Built by Amber Rogers")
     st.caption("Senior Technical Writer and DocOps Advocate specializing in hardware and software documentation, API reference development, and AI-driven workflow integration.")
-    st.markdown("[🔗 LinkedIn Profile](https://www.linkedin.com) | [🐙 GitHub Portfolio](https://github.com/amberchantell)")
+    st.markdown("[🔗 LinkedIn Profile](https://www.linkedin.com/in/ambercrogers/) | [🐙 GitHub Portfolio](https://github.com/amberchantell)")
 
 tab1, tab2 = st.tabs(["🔍 Pre-Drafting: Gap Analysis", "📊 Post-Drafting: Release Summary"])
 
