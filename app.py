@@ -1,5 +1,6 @@
 import streamlit as st
 import anthropic
+import pypdf
 
 st.set_page_config(
     page_title="Doc-Ops Workbench | Amber Rogers", 
@@ -59,6 +60,16 @@ st.markdown("""
     }
 </style>
 """, unsafe_allow_html=True)
+
+def extract_text_from_pdf(file):
+    """Extracts text content from an uploaded PDF file."""
+    reader = pypdf.PdfReader(file)
+    extracted_text = ""
+    for page in reader.pages:
+        text = page.extract_text()
+        if text:
+            extracted_text += text + "\n"
+    return extracted_text
 
 st.markdown("<div class=\"main-header\">📝 Technical Writing Doc-Ops Workbench</div>", unsafe_allow_html=True)
 st.markdown("<div class=\"sub-header\">AI-assisted gap analysis, release summaries, and doc change impact audits</div>", unsafe_allow_html=True)
@@ -145,7 +156,7 @@ SAMPLE_IMPACT_OUTPUT = """### 🔄 Impact & Change Analysis Report
 
 ---
 
-#### ✏️️ Proposed Document Revisions
+#### ✏ Proposed Document Revisions
 
 ```markdown
 ## Authentication Overview
@@ -161,7 +172,7 @@ Authentication attempts are rate-limited to **5 failed attempts per IP per minut
 ```"""
 
 with st.sidebar:
-    st.header("⚙️ Configuration")
+    st.header("⚙ Configuration")
     
     app_mode = st.radio(
         "Execution Mode",
@@ -169,11 +180,35 @@ with st.sidebar:
         help="Use Demo Mode to test instantly without an API key, or Live Mode to call Claude live."
     )
     
-    style_guide = st.selectbox(
+    style_guide_selection = st.selectbox(
         "Documentation Style Guide Rule",
-        ["Standard Technical Writing", "Google Developer Documentation Style", "Microsoft Writing Style Guide"],
+        [
+            "Standard Technical Writing", 
+            "Google Developer Documentation Style", 
+            "Microsoft Writing Style Guide",
+            "Upload Custom Style Guide File (.pdf, .txt, .md)"
+        ],
         help="Instructs Claude to tailor recommendations to specific organizational style guidelines."
     )
+    
+    style_guide = style_guide_selection
+    if style_guide_selection == "Upload Custom Style Guide File (.pdf, .txt, .md)":
+        uploaded_file = st.file_uploader("Upload Style Guide Document", type=["pdf", "txt", "md"])
+        if uploaded_file is not None:
+            try:
+                if uploaded_file.name.endswith('.pdf'):
+                    extracted_rules = extract_text_from_pdf(uploaded_file)
+                else:
+                    extracted_rules = uploaded_file.read().decode("utf-8")
+                
+                # Limit size passed to prompt to avoid context limit issues
+                style_guide = f"Custom Document Guidelines ({extracted_rules[:3000]})"
+                st.success(f"Loaded {uploaded_file.name}")
+            except Exception as e:
+                st.error(f"Error parsing file: {e}")
+        else:
+            style_guide = "Standard Technical Writing"
+            st.info("Upload a style guide file above or standard guidelines will be applied.")
     
     export_format = st.selectbox(
         "Output Format",
@@ -209,7 +244,7 @@ with tab1:
     st.write("Convert raw meeting transcripts or engineering sync notes into structured checklists of missing technical details.")
     
     if app_mode == "Demo Mode (Pre-loaded)":
-        st.markdown(f"<div class=\"badge-demo\">⚡ Demo Mode Active • Style: {style_guide} • Format: {export_format}</div>", unsafe_allow_html=True)
+        st.markdown(f"<div class=\"badge-demo\">⚡ Demo Mode Active • Style: {style_guide_selection} • Format: {export_format}</div>", unsafe_allow_html=True)
     
     notes_input = st.text_area("Raw Engineering Notes", value=SAMPLE_NOTES if app_mode == "Demo Mode (Pre-loaded)" else "", height=200)
     
@@ -240,7 +275,7 @@ with tab1:
                 with st.spinner("Claude is analyzing notes for technical gaps..."):
                     try:
                         client = anthropic.Anthropic(api_key=anthropic_key)
-                        prompt = f"You are an expert senior technical writer adhering strictly to the {style_guide}. Analyze these engineering meeting notes and output a crisp checklist categorizing missing technical details, unspecified API schemas, edge cases, and required stakeholder sign-offs. Format output using {export_format}:\n\n{notes_input}"
+                        prompt = f"You are an expert senior technical writer adhering strictly to these style guide guidelines: {style_guide}. Analyze these engineering meeting notes and output a crisp checklist categorizing missing technical details, unspecified API schemas, edge cases, and required stakeholder sign-offs. Format output using {export_format}:\n\n{notes_input}"
                         response = client.messages.create(
                             model="claude-3-5-sonnet-20241022",
                             max_tokens=1000,
@@ -268,7 +303,7 @@ with tab2:
     st.write("Synthesize completed Jira tickets and release specs into executive updates and structured documentation outlines.")
     
     if app_mode == "Demo Mode (Pre-loaded)":
-        st.markdown(f"<div class=\"badge-demo\">⚡ Demo Mode Active • Style: {style_guide} • Format: {export_format}</div>", unsafe_allow_html=True)
+        st.markdown(f"<div class=\"badge-demo\">⚡ Demo Mode Active • Style: {style_guide_selection} • Format: {export_format}</div>", unsafe_allow_html=True)
     
     jira_input = st.text_area("Resolved Jira Tickets / Release Specs", value=SAMPLE_JIRA if app_mode == "Demo Mode (Pre-loaded)" else "", height=200)
     
@@ -295,7 +330,7 @@ with tab2:
                 with st.spinner("Claude is synthesizing release notes..."):
                     try:
                         client = anthropic.Anthropic(api_key=anthropic_key)
-                        prompt = f"You are an expert technical writer adhering strictly to the {style_guide}. Synthesize these feature specs/Jira summaries into two sections using {export_format}:\n1. Executive Release Summary\n2. Proposed Documentation Outline\n\n{jira_input}"
+                        prompt = f"You are an expert technical writer adhering strictly to these style guide guidelines: {style_guide}. Synthesize these feature specs/Jira summaries into two sections using {export_format}:\n1. Executive Release Summary\n2. Proposed Documentation Outline\n\n{jira_input}"
                         response = client.messages.create(
                             model="claude-3-5-sonnet-20241022",
                             max_tokens=1000,
@@ -323,7 +358,7 @@ with tab3:
     st.write("Compare new engineering changes against existing documentation to pinpoint outdated sections and draft updated content.")
     
     if app_mode == "Demo Mode (Pre-loaded)":
-        st.markdown(f"<div class=\"badge-demo\">⚡ Demo Mode Active • Style: {style_guide} • Format: {export_format}</div>", unsafe_allow_html=True)
+        st.markdown(f"<div class=\"badge-demo\">⚡ Demo Mode Active • Style: {style_guide_selection} • Format: {export_format}</div>", unsafe_allow_html=True)
     
     col_a, col_b = st.columns(2)
     with col_a:
@@ -354,7 +389,7 @@ with tab3:
                 with st.spinner("Claude is auditing documentation for required updates..."):
                     try:
                         client = anthropic.Anthropic(api_key=anthropic_key)
-                        prompt = f"You are an expert technical writer adhering strictly to the {style_guide}. Audit the existing documentation against the provided engineering changes. Format output using {export_format}:\n\n1. Outdated Sections Identified\n2. Proposed Document Revisions\n\nEXISTING DOCUMENTATION:\n{doc_input}\n\nENGINEERING CHANGES:\n{change_input}"
+                        prompt = f"You are an expert technical writer adhering strictly to these style guide guidelines: {style_guide}. Audit the existing documentation against the provided engineering changes. Format output using {export_format}:\n\n1. Outdated Sections Identified\n2. Proposed Document Revisions\n\nEXISTING DOCUMENTATION:\n{doc_input}\n\nENGINEERING CHANGES:\n{change_input}"
                         response = client.messages.create(
                             model="claude-3-5-sonnet-20241022",
                             max_tokens=1200,
