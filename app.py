@@ -145,7 +145,7 @@ SAMPLE_IMPACT_OUTPUT = """### 🔄 Impact & Change Analysis Report
 
 ---
 
-#### ✏️ Proposed Document Revisions
+#### ✏️️ Proposed Document Revisions
 
 ```markdown
 ## Authentication Overview
@@ -177,7 +177,14 @@ with st.sidebar:
     
     export_format = st.selectbox(
         "Output Format",
-        ["Markdown (.md)", "Jira Markup (.txt)"],
+        [
+            "Markdown (.md)", 
+            "GitHub Markdown (.md)", 
+            "Jira Markup (.txt)", 
+            "Confluence Markup", 
+            "OpenAPI 3.0 (YAML)", 
+            "HTML (.html)"
+        ],
         help="Select output formatting dialect."
     )
     
@@ -221,7 +228,7 @@ with tab1:
             st.download_button(
                 label="📥 Download Checklist",
                 data=SAMPLE_GAP_OUTPUT,
-                file_name="gap_analysis_checklist.md" if export_format == "Markdown (.md)" else "gap_analysis_checklist.txt",
+                file_name=f"gap_analysis_checklist.{export_format.split()[-1].strip('()').lower()}",
                 mime="text/plain"
             )
         else:
@@ -249,7 +256,7 @@ with tab1:
                         st.download_button(
                             label="📥 Download Checklist",
                             data=output_text,
-                            file_name="gap_analysis_checklist.md" if export_format == "Markdown (.md)" else "gap_analysis_checklist.txt",
+                            file_name=f"gap_analysis_checklist.{export_format.split()[-1].strip('()').lower()}",
                             mime="text/plain"
                         )
                     except Exception as e:
@@ -276,7 +283,7 @@ with tab2:
             st.download_button(
                 label="📥 Download Summary & Outline",
                 data=SAMPLE_RELEASE_OUTPUT,
-                file_name="release_summary.md" if export_format == "Markdown (.md)" else "release_summary.txt",
+                file_name=f"release_summary.{export_format.split()[-1].strip('()').lower()}",
                 mime="text/plain"
             )
         else:
@@ -304,7 +311,7 @@ with tab2:
                         st.download_button(
                             label="📥 Download Summary & Outline",
                             data=output_text,
-                            file_name="release_summary.md" if export_format == "Markdown (.md)" else "release_summary.txt",
+                            file_name=f"release_summary.{export_format.split()[-1].strip('()').lower()}",
                             mime="text/plain"
                         )
                     except Exception as e:
@@ -335,7 +342,7 @@ with tab3:
             st.download_button(
                 label="📥 Download Audit & Proposed Edits",
                 data=SAMPLE_IMPACT_OUTPUT,
-                file_name="doc_impact_report.md" if export_format == "Markdown (.md)" else "doc_impact_report.txt",
+                file_name=f"doc_impact_report.{export_format.split()[-1].strip('()').lower()}",
                 mime="text/plain"
             )
         else:
@@ -363,7 +370,7 @@ with tab3:
                         st.download_button(
                             label="📥 Download Audit & Proposed Edits",
                             data=output_text,
-                            file_name="doc_impact_report.md" if export_format == "Markdown (.md)" else "doc_impact_report.txt",
+                            file_name=f"doc_impact_report.{export_format.split()[-1].strip('()').lower()}",
                             mime="text/plain"
                         )
                     except Exception as e:
