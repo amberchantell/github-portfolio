@@ -7,17 +7,11 @@ st.set_page_config(
     layout="wide"
 )
 
-# Custom CSS for SaaS-grade visual design
 st.markdown("""
 <style>
-    /* Global Styles & Typography */
     .main { background-color: #FAFAFA; }
-    
-    /* Header Styling */
     .main-header { font-size: 2.3rem; font-weight: 800; color: #0F172A; letter-spacing: -0.02em; margin-bottom: 4px; }
     .sub-header { font-size: 1.05rem; color: #64748B; font-weight: 400; margin-bottom: 20px; }
-    
-    /* Metric Cards Styling */
     [data-testid="stMetricValue"] { font-size: 1.8rem !important; font-weight: 700; color: #1E293B; }
     [data-testid="stMetric"] {
         background-color: #FFFFFF;
@@ -26,8 +20,6 @@ st.markdown("""
         padding: 14px 18px;
         box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.05);
     }
-    
-    /* Card Container Wrapper */
     .ui-card {
         background-color: #FFFFFF;
         border: 1px solid #E2E8F0;
@@ -36,8 +28,6 @@ st.markdown("""
         margin-bottom: 20px;
         box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.04);
     }
-    
-    /* Custom Status Badges */
     .badge-demo {
         background-color: #EEF2FF;
         color: #4338CA;
@@ -49,14 +39,10 @@ st.markdown("""
         display: inline-block;
         margin-bottom: 12px;
     }
-    
-    /* Sidebar Polish */
     section[data-testid="stSidebar"] {
         background-color: #F8FAFC;
         border-right: 1px solid #E2E8F0;
     }
-    
-    /* Primary Action Buttons */
     .stButton>button {
         width: 100%;
         border-radius: 8px;
@@ -74,20 +60,18 @@ st.markdown("""
 </style>
 """, unsafe_allow_html=True)
 
-# Main Page Header
-st.markdown('<div class="main-header">📝 Technical Writing Doc-Ops Workbench</div>', unsafe_allow_html=True)
-st.markdown('<div class="sub-header">AI-assisted pre-drafting gap analysis & post-drafting release synthesis</div>', unsafe_allow_html=True)
+st.markdown("<div class=\"main-header\">📝 Technical Writing Doc-Ops Workbench</div>", unsafe_allow_html=True)
+st.markdown("<div class=\"sub-header\">AI-assisted gap analysis, release summaries, and doc change impact audits</div>", unsafe_allow_html=True)
 
-# Personal Philosophy Expander
 with st.expander("💡 Why I Built This Workbench"):
     st.markdown("""
-    In technical writing across hardware and software ecosystems, **discovery friction** is the single biggest bottleneck to on-time releases. 
-    Writers often spend hours parsing ambiguous engineering sync transcripts or chasing down unassigned API rate-limit schemas. 
+    In technical writing across hardware and software ecosystems, **discovery friction and doc maintenance** are major bottlenecks to on-time releases. 
+    Writers spend hours parsing ambiguous sync transcripts, hunting down unassigned API schemas, or manually auditing existing guides when engineering changes occur. 
     
-    I created this workbench to automate **pre-drafting gap analysis** and **post-drafting release synthesis**, enabling documentation engineers and technical writers to focus on high-impact technical deliverable design.
+    I created this workbench to automate **pre-drafting gap analysis**, **release note drafting**, and **doc change impact audits**, enabling writers to focus on high-impact technical deliverable design.
     """)
 
-SAMPLE_NOTES = """[Meeting Notes: Auth Service v2 Upgrade - Oct 2026]
+SAMPLE_NOTES = """[Meeting Notes: Auth Service v2 Upgrade]
 Attendees: Alex (DevOps), Priya (Backend Lead), Jordan (Tech Writer)
 
 Discussion Points:
@@ -103,6 +87,23 @@ SAMPLE_JIRA = """[Resolved Tickets - Release 4.12]
 - AUTH-310: Deprecated GET /v1/user/profile in favor of POST /v2/user/profile-details.
 - AUTH-315: Added PKCE support for mobile client authorization flows.
 - DOC-102: Added telemetry hooks for error tracking during token refresh."""
+
+SAMPLE_EXISTING_DOC = """# User Profile & Auth API Reference
+
+## Authentication Overview
+Clients authenticate using bearer tokens obtained from `POST /v1/auth/login`. Tokens remain valid for 24 hours.
+
+## User Endpoints
+### Get User Profile
+`GET /v1/user/profile`
+Returns the user's profile details including email, full name, and assigned permissions.
+
+### Rate Limits
+There are currently no enforced rate limits on authentication attempts, but client applications are expected to back off on 5xx errors."""
+
+SAMPLE_CHANGELOG = """- Deprecated GET /v1/user/profile; replaced with POST /v2/user/profile-details.
+- Access token lifespan reduced from 24 hours to 15 minutes with 7-day refresh token rotation.
+- Rate limiting added: 5 failed attempts per IP per minute yields HTTP 429."""
 
 SAMPLE_GAP_OUTPUT = """### 📋 Pre-Drafting Clarification Checklist
 
@@ -135,13 +136,37 @@ Release 4.12 enhances platform security by implementing rate-limiting middleware
    - `HTTP 429` error payload handling
 4. **Troubleshooting & FAQs**"""
 
+SAMPLE_IMPACT_OUTPUT = """### 🔄 Impact & Change Analysis Report
+
+#### ⚠ Outdated Sections Identified
+1. **Token Lifespan:** Existing doc specifies 24-hour token validity. Update to 15-minute access tokens + 7-day refresh token rotation.
+2. **Deprecated Endpoint:** `GET /v1/user/profile` is deprecated. Replace reference with `POST /v2/user/profile-details`.
+3. **Rate Limits:** Section states "no enforced rate limits". Update with 5 attempts/min per IP threshold and HTTP 429 error behavior.
+
+---
+
+#### ✏️ Proposed Document Revisions
+
+```markdown
+## Authentication Overview
+Clients authenticate using short-lived JWT access tokens (15-minute expiration) obtained via `POST /v2/auth/refresh` alongside a 7-day refresh token rotation policy.
+
+## User Endpoints
+### Get Profile Details (v2)
+`POST /v2/user/profile-details`
+*Note: `GET /v1/user/profile` is deprecated.* Returns user profile details, including email, full name, and permissions.
+
+### Rate Limits
+Authentication attempts are rate-limited to **5 failed attempts per IP per minute**. Exceeding this limit returns an `HTTP 429 Too Many Requests` status code.
+```"""
+
 with st.sidebar:
     st.header("⚙️ Configuration")
     
     app_mode = st.radio(
         "Execution Mode",
         ["Demo Mode (Pre-loaded)", "Live Mode (Anthropic API)"],
-        help="Use Demo Mode to test instantly without an API key, or Live Mode to call Claude 3.5 Sonnet live."
+        help="Use Demo Mode to test instantly without an API key, or Live Mode to call Claude live."
     )
     
     style_guide = st.selectbox(
@@ -165,14 +190,19 @@ with st.sidebar:
     st.caption("Senior Technical Writer and DocOps Advocate specializing in hardware and software documentation, API reference development, and AI-driven workflow integration.")
     st.markdown("[🔗 LinkedIn Profile](https://www.linkedin.com/in/ambercrogers/) | [🐙 GitHub Portfolio](https://github.com/amberchantell)")
 
-tab1, tab2 = st.tabs(["🔍 Pre-Drafting: Gap Analysis", "📊 Post-Drafting: Release Summary"])
+tab1, tab2, tab3 = st.tabs([
+    "🔍 Pre-Drafting: Gap Analysis", 
+    "📊 Release Summaries & Outlines", 
+    "🔄 Impact & Change Analysis"
+])
 
+# TAB 1: GAP ANALYSIS
 with tab1:
     st.subheader("Identify Technical Gaps in Raw Notes")
     st.write("Convert raw meeting transcripts or engineering sync notes into structured checklists of missing technical details.")
     
     if app_mode == "Demo Mode (Pre-loaded)":
-        st.markdown(f'<div class="badge-demo">⚡ Demo Mode Active • Style: {style_guide} • Format: {export_format}</div>', unsafe_allow_html=True)
+        st.markdown(f"<div class=\"badge-demo\">⚡ Demo Mode Active • Style: {style_guide} • Format: {export_format}</div>", unsafe_allow_html=True)
     
     notes_input = st.text_area("Raw Engineering Notes", value=SAMPLE_NOTES if app_mode == "Demo Mode (Pre-loaded)" else "", height=200)
     
@@ -184,9 +214,9 @@ with tab1:
             m2.metric("Technical Items", "2")
             m3.metric("Sign-Offs Needed", "2")
             
-            st.markdown('<div class="ui-card">', unsafe_allow_html=True)
+            st.markdown("<div class=\"ui-card\">", unsafe_allow_html=True)
             st.markdown(SAMPLE_GAP_OUTPUT)
-            st.markdown('</div>', unsafe_allow_html=True)
+            st.markdown("</div>", unsafe_allow_html=True)
             
             st.download_button(
                 label="📥 Download Checklist",
@@ -203,9 +233,7 @@ with tab1:
                 with st.spinner("Claude is analyzing notes for technical gaps..."):
                     try:
                         client = anthropic.Anthropic(api_key=anthropic_key)
-                        prompt = f"""You are an expert senior technical writer adhering strictly to the {style_guide}. Analyze these engineering meeting notes and output a crisp checklist categorizing missing technical details, unspecified API schemas, edge cases, and required stakeholder sign-offs. Format output using {export_format}:
-
-{notes_input}"""
+                        prompt = f"You are an expert senior technical writer adhering strictly to the {style_guide}. Analyze these engineering meeting notes and output a crisp checklist categorizing missing technical details, unspecified API schemas, edge cases, and required stakeholder sign-offs. Format output using {export_format}:\n\n{notes_input}"
                         response = client.messages.create(
                             model="claude-3-5-sonnet-20241022",
                             max_tokens=1000,
@@ -214,9 +242,9 @@ with tab1:
                         output_text = response.content[0].text
                         st.success("Analysis Complete!")
                         
-                        st.markdown('<div class="ui-card">', unsafe_allow_html=True)
+                        st.markdown("<div class=\"ui-card\">", unsafe_allow_html=True)
                         st.markdown(output_text)
-                        st.markdown('</div>', unsafe_allow_html=True)
+                        st.markdown("</div>", unsafe_allow_html=True)
                         
                         st.download_button(
                             label="📥 Download Checklist",
@@ -227,12 +255,13 @@ with tab1:
                     except Exception as e:
                         st.error(f"Error executing request: {e}")
 
+# TAB 2: RELEASE SUMMARIES
 with tab2:
     st.subheader("Generate Release Summaries & Doc Outlines")
     st.write("Synthesize completed Jira tickets and release specs into executive updates and structured documentation outlines.")
     
     if app_mode == "Demo Mode (Pre-loaded)":
-        st.markdown(f'<div class="badge-demo">⚡ Demo Mode Active • Style: {style_guide} • Format: {export_format}</div>', unsafe_allow_html=True)
+        st.markdown(f"<div class=\"badge-demo\">⚡ Demo Mode Active • Style: {style_guide} • Format: {export_format}</div>", unsafe_allow_html=True)
     
     jira_input = st.text_area("Resolved Jira Tickets / Release Specs", value=SAMPLE_JIRA if app_mode == "Demo Mode (Pre-loaded)" else "", height=200)
     
@@ -240,9 +269,9 @@ with tab2:
         if app_mode == "Demo Mode (Pre-loaded)":
             st.success("Synthesis Complete (Demo Output)")
             
-            st.markdown('<div class="ui-card">', unsafe_allow_html=True)
+            st.markdown("<div class=\"ui-card\">", unsafe_allow_html=True)
             st.markdown(SAMPLE_RELEASE_OUTPUT)
-            st.markdown('</div>', unsafe_allow_html=True)
+            st.markdown("</div>", unsafe_allow_html=True)
             
             st.download_button(
                 label="📥 Download Summary & Outline",
@@ -259,11 +288,7 @@ with tab2:
                 with st.spinner("Claude is synthesizing release notes..."):
                     try:
                         client = anthropic.Anthropic(api_key=anthropic_key)
-                        prompt = f"""You are an expert technical writer adhering strictly to the {style_guide}. Synthesize these feature specs/Jira summaries into two sections using {export_format}:
-1. Executive Release Summary (a high-level executive overview for internal stakeholders)
-2. Proposed Documentation Outline (a detailed numbered outline for end-user documentation)
-
-{jira_input}"""
+                        prompt = f"You are an expert technical writer adhering strictly to the {style_guide}. Synthesize these feature specs/Jira summaries into two sections using {export_format}:\n1. Executive Release Summary\n2. Proposed Documentation Outline\n\n{jira_input}"
                         response = client.messages.create(
                             model="claude-3-5-sonnet-20241022",
                             max_tokens=1000,
@@ -272,9 +297,9 @@ with tab2:
                         output_text = response.content[0].text
                         st.success("Synthesis Complete!")
                         
-                        st.markdown('<div class="ui-card">', unsafe_allow_html=True)
+                        st.markdown("<div class=\"ui-card\">", unsafe_allow_html=True)
                         st.markdown(output_text)
-                        st.markdown('</div>', unsafe_allow_html=True)
+                        st.markdown("</div>", unsafe_allow_html=True)
                         
                         st.download_button(
                             label="📥 Download Summary & Outline",
@@ -285,11 +310,69 @@ with tab2:
                     except Exception as e:
                         st.error(f"Error executing request: {e}")
 
-# Branded Footer
+# TAB 3: IMPACT & CHANGE ANALYSIS
+with tab3:
+    st.subheader("Document Audit & Update Assistant")
+    st.write("Compare new engineering changes against existing documentation to pinpoint outdated sections and draft updated content.")
+    
+    if app_mode == "Demo Mode (Pre-loaded)":
+        st.markdown(f"<div class=\"badge-demo\">⚡ Demo Mode Active • Style: {style_guide} • Format: {export_format}</div>", unsafe_allow_html=True)
+    
+    col_a, col_b = st.columns(2)
+    with col_a:
+        doc_input = st.text_area("Existing Documentation", value=SAMPLE_EXISTING_DOC if app_mode == "Demo Mode (Pre-loaded)" else "", height=220)
+    with col_b:
+        change_input = st.text_area("Engineering Changes / Changelog", value=SAMPLE_CHANGELOG if app_mode == "Demo Mode (Pre-loaded)" else "", height=220)
+    
+    if st.button("Analyze Documentation Impact", type="primary", key="btn_impact"):
+        if app_mode == "Demo Mode (Pre-loaded)":
+            st.success("Audit Complete (Demo Output)")
+            
+            st.markdown("<div class=\"ui-card\">", unsafe_allow_html=True)
+            st.markdown(SAMPLE_IMPACT_OUTPUT)
+            st.markdown("</div>", unsafe_allow_html=True)
+            
+            st.download_button(
+                label="📥 Download Audit & Proposed Edits",
+                data=SAMPLE_IMPACT_OUTPUT,
+                file_name="doc_impact_report.md" if export_format == "Markdown (.md)" else "doc_impact_report.txt",
+                mime="text/plain"
+            )
+        else:
+            if not doc_input or not change_input:
+                st.warning("Please provide both existing documentation and engineering changes.")
+            elif not anthropic_key:
+                st.warning("Please enter your Anthropic API Key in the sidebar.")
+            else:
+                with st.spinner("Claude is auditing documentation for required updates..."):
+                    try:
+                        client = anthropic.Anthropic(api_key=anthropic_key)
+                        prompt = f"You are an expert technical writer adhering strictly to the {style_guide}. Audit the existing documentation against the provided engineering changes. Format output using {export_format}:\n\n1. Outdated Sections Identified\n2. Proposed Document Revisions\n\nEXISTING DOCUMENTATION:\n{doc_input}\n\nENGINEERING CHANGES:\n{change_input}"
+                        response = client.messages.create(
+                            model="claude-3-5-sonnet-20241022",
+                            max_tokens=1200,
+                            messages=[{"role": "user", "content": prompt}]
+                        )
+                        output_text = response.content[0].text
+                        st.success("Audit Complete!")
+                        
+                        st.markdown("<div class=\"ui-card\">", unsafe_allow_html=True)
+                        st.markdown(output_text)
+                        st.markdown("</div>", unsafe_allow_html=True)
+                        
+                        st.download_button(
+                            label="📥 Download Audit & Proposed Edits",
+                            data=output_text,
+                            file_name="doc_impact_report.md" if export_format == "Markdown (.md)" else "doc_impact_report.txt",
+                            mime="text/plain"
+                        )
+                    except Exception as e:
+                        st.error(f"Error executing request: {e}")
+
 st.markdown("---")
 st.markdown(
-    "<div style='text-align: center; color: #64748B; font-size: 0.85rem; padding-bottom: 20px;'>"
-    "Technical Writing Doc-Ops Workbench • Engineered by <b>Amber Rogers</b> • Powered by Claude 3.5 Sonnet"
+    "<div style=\"text-align: center; color: #64748B; font-size: 0.85rem; padding-bottom: 20px;\">"
+    "Technical Writing Doc-Ops Workbench • Engineered by <b>Amber Rogers</b> • Powered by Claude"
     "</div>",
     unsafe_allow_html=True
 )
