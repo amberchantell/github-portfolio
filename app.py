@@ -7,15 +7,74 @@ st.set_page_config(
     layout="wide"
 )
 
-# Custom Styling & Personal Branding Accent
+# Custom CSS for SaaS-grade visual design
 st.markdown("""
 <style>
-    .main-header { font-size: 2.2rem; font-weight: 700; color: #0F172A; margin-bottom: 0px; }
-    .sub-header { font-size: 1rem; color: #475569; margin-bottom: 15px; }
-    .stMetric { background-color: #F8FAFC; border: 1px solid #E2E8F0; padding: 12px; border-radius: 8px; }
+    /* Global Styles & Typography */
+    .main { background-color: #FAFAFA; }
+    
+    /* Header Styling */
+    .main-header { font-size: 2.3rem; font-weight: 800; color: #0F172A; letter-spacing: -0.02em; margin-bottom: 4px; }
+    .sub-header { font-size: 1.05rem; color: #64748B; font-weight: 400; margin-bottom: 20px; }
+    
+    /* Metric Cards Styling */
+    [data-testid="stMetricValue"] { font-size: 1.8rem !important; font-weight: 700; color: #1E293B; }
+    [data-testid="stMetric"] {
+        background-color: #FFFFFF;
+        border: 1px solid #E2E8F0;
+        border-radius: 10px;
+        padding: 14px 18px;
+        box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.05);
+    }
+    
+    /* Card Container Wrapper */
+    .ui-card {
+        background-color: #FFFFFF;
+        border: 1px solid #E2E8F0;
+        border-radius: 12px;
+        padding: 24px;
+        margin-bottom: 20px;
+        box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.04);
+    }
+    
+    /* Custom Status Badges */
+    .badge-demo {
+        background-color: #EEF2FF;
+        color: #4338CA;
+        font-weight: 600;
+        font-size: 0.82rem;
+        padding: 4px 10px;
+        border-radius: 6px;
+        border: 1px solid #C7D2FE;
+        display: inline-block;
+        margin-bottom: 12px;
+    }
+    
+    /* Sidebar Polish */
+    section[data-testid="stSidebar"] {
+        background-color: #F8FAFC;
+        border-right: 1px solid #E2E8F0;
+    }
+    
+    /* Primary Action Buttons */
+    .stButton>button {
+        width: 100%;
+        border-radius: 8px;
+        font-weight: 600;
+        padding: 10px 16px;
+        background-color: #4F46E5 !important;
+        color: #FFFFFF !important;
+        border: none !important;
+        transition: all 0.2s ease;
+    }
+    .stButton>button:hover {
+        background-color: #4338CA !important;
+        box-shadow: 0 4px 12px rgba(79, 70, 229, 0.25);
+    }
 </style>
 """, unsafe_allow_html=True)
 
+# Main Page Header
 st.markdown('<div class="main-header">📝 Technical Writing Doc-Ops Workbench</div>', unsafe_allow_html=True)
 st.markdown('<div class="sub-header">AI-assisted pre-drafting gap analysis & post-drafting release synthesis</div>', unsafe_allow_html=True)
 
@@ -113,7 +172,7 @@ with tab1:
     st.write("Convert raw meeting transcripts or engineering sync notes into structured checklists of missing technical details.")
     
     if app_mode == "Demo Mode (Pre-loaded)":
-        st.info(f"💡 **Demo Mode Active:** Applied rule set: **{style_guide}** | Export format: **{export_format}**")
+        st.markdown(f'<div class="badge-demo">⚡ Demo Mode Active • Style: {style_guide} • Format: {export_format}</div>', unsafe_allow_html=True)
     
     notes_input = st.text_area("Raw Engineering Notes", value=SAMPLE_NOTES if app_mode == "Demo Mode (Pre-loaded)" else "", height=200)
     
@@ -121,10 +180,14 @@ with tab1:
         if app_mode == "Demo Mode (Pre-loaded)":
             st.success("Analysis Complete (Demo Output)")
             m1, m2, m3 = st.columns(3)
-            m1.metric("Critical Gaps", "2", delta_color="inverse")
+            m1.metric("Critical Gaps", "2")
             m2.metric("Technical Items", "2")
             m3.metric("Sign-Offs Needed", "2")
+            
+            st.markdown('<div class="ui-card">', unsafe_allow_html=True)
             st.markdown(SAMPLE_GAP_OUTPUT)
+            st.markdown('</div>', unsafe_allow_html=True)
+            
             st.download_button(
                 label="📥 Download Checklist",
                 data=SAMPLE_GAP_OUTPUT,
@@ -150,7 +213,11 @@ with tab1:
                         )
                         output_text = response.content[0].text
                         st.success("Analysis Complete!")
+                        
+                        st.markdown('<div class="ui-card">', unsafe_allow_html=True)
                         st.markdown(output_text)
+                        st.markdown('</div>', unsafe_allow_html=True)
+                        
                         st.download_button(
                             label="📥 Download Checklist",
                             data=output_text,
@@ -165,14 +232,18 @@ with tab2:
     st.write("Synthesize completed Jira tickets and release specs into executive updates and structured documentation outlines.")
     
     if app_mode == "Demo Mode (Pre-loaded)":
-        st.info(f"💡 **Demo Mode Active:** Applied rule set: **{style_guide}** | Export format: **{export_format}**")
+        st.markdown(f'<div class="badge-demo">⚡ Demo Mode Active • Style: {style_guide} • Format: {export_format}</div>', unsafe_allow_html=True)
     
     jira_input = st.text_area("Resolved Jira Tickets / Release Specs", value=SAMPLE_JIRA if app_mode == "Demo Mode (Pre-loaded)" else "", height=200)
     
     if st.button("Generate Summary & Outline", type="primary", key="btn_rel"):
         if app_mode == "Demo Mode (Pre-loaded)":
             st.success("Synthesis Complete (Demo Output)")
+            
+            st.markdown('<div class="ui-card">', unsafe_allow_html=True)
             st.markdown(SAMPLE_RELEASE_OUTPUT)
+            st.markdown('</div>', unsafe_allow_html=True)
+            
             st.download_button(
                 label="📥 Download Summary & Outline",
                 data=SAMPLE_RELEASE_OUTPUT,
@@ -200,7 +271,11 @@ with tab2:
                         )
                         output_text = response.content[0].text
                         st.success("Synthesis Complete!")
+                        
+                        st.markdown('<div class="ui-card">', unsafe_allow_html=True)
                         st.markdown(output_text)
+                        st.markdown('</div>', unsafe_allow_html=True)
+                        
                         st.download_button(
                             label="📥 Download Summary & Outline",
                             data=output_text,
